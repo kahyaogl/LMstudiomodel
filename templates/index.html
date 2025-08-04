@@ -1,23 +1,38 @@
+<!-- templates/index.html -->
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-    <title>PDF Soru-Cevap Sistemi</title>
+    <meta charset="UTF-8">
+    <title>PDF Soru-Cevap</title>
 </head>
 <body>
-    <h1>PDF'den Soru-Cevap</h1>
-    <form method="post" enctype="multipart/form-data">
-        <label>PDF Yükle:</label><br>
-        <input type="file" name="pdf"><br><br>
+    <h2>PDF Yükle</h2>
+    <form method="post" enctype="multipart/form-data" action="/upload">
+        <input type="file" name="pdf" required>
+        <input type="submit" value="Yükle">
+    </form>
+
+    <hr>
+
+    <h2>Soru Sor</h2>
+    <form method="post" action="/ask">
+        <label>PDF Seç:</label><br>
+        <select name="selected_pdf" required>
+            {% for file in pdf_list %}
+                <option value="{{ file }}">{{ file }}</option>
+            {% endfor %}
+        </select><br><br>
 
         <label>Soru:</label><br>
-        <input type="text" name="question" style="width: 300px;"><br><br>
+        <input type="text" name="question" size="60" required><br><br>
 
         <input type="submit" value="Sor">
     </form>
 
     {% if answer %}
-    <h2>Cevap:</h2>
-    <p>{{ answer }}</p>
+        <h3>📌 Cevap:</h3>
+        <p>{{ answer }}</p>
     {% endif %}
 </body>
 </html>
+

@@ -1,14 +1,14 @@
+# LMmodel.py
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from PyPDF2 import PdfReader
 import numpy as np
 import requests
 import json
+import os
 
+model = SentenceTransformer("all-MiniLM-L6-v2")
 
-
-
-# === 1. PDF'den metin oku ===
 def read_pdf_paragraphs(pdf_path):
     reader = PdfReader(pdf_path)
     text = ""
@@ -17,14 +17,27 @@ def read_pdf_paragraphs(pdf_path):
     paragraphs = [p.strip() for p in text.split('.') if len(p.strip()) > 50]
     return paragraphs
 
-# === 2. Embedding modeli yükle ===
-model = SentenceTransformer("all-MiniLM-L6-v2")
+def get_cached_embeddings(pdf_path):
+    os.makedirs("embeds", exist_ok=True)
+    os.makedirs("paragraphs", exist_ok=True)
 
-# === 3. Paragrafları embed et ===
-def embed_paragraphs(paragraphs):
-    return model.encode(paragraphs)
+    base = os.path.basename(pdf_path).replace(".pdf", "")
+    embed_path = f"embeds/{base}.npy"
+    para_path = f"paragraphs/{base}.json"
 
-# === 4. En uygun paragrafı bul ===
+    if os.path.exists(embed_path) and os.path.exists(para_path):
+        embeddings = np.load(embed_path)
+        with open(para_path, "r", encoding="utf-8") as f:
+            paragraphs = json.load(f)
+    else:
+        paragraphs = read_pdf_paragraphs(pdf_path)
+        embeddings = model.encode(paragraphs)
+        np.save(embed_path, embeddings)
+        with open(para_path, "w", encoding="utf-8") as f:
+            json.dump(paragraphs, f, ensure_ascii=False, indent=2)
+    
+    return paragraphs, embeddings
+
 def find_best_match(paragraphs, paragraph_embeddings, question):
     question_embedding = model.encode([question])
     sims = cosine_similarity(question_embedding, paragraph_embeddings)[0]
@@ -34,16 +47,12 @@ def find_best_match(paragraphs, paragraph_embeddings, question):
     if best_idx + 1 < len(paragraphs):
         combined_context += " " + paragraphs[best_idx + 1]
     return combined_context, sims[best_idx]
-import requests
-import json
 
 def ask_local_llm(context, question):
     url = "http://localhost:1234/v1/chat/completions"
-    headers = {
-        "Content-Type": "application/json"
-    }
+    headers = {"Content-Type": "application/json"}
     payload = {
-        "model": "mistralai/mistral-7b-instruct-v0.3",  # Model ismi LM Studio'daki yüklü modele göre değiştirilmeli
+        "model": "mistralai/mistral-7b-instruct-v0.3",
         "messages": [
             {
                 "role": "user",
@@ -52,28 +61,15 @@ def ask_local_llm(context, question):
         ],
         "temperature": 0.7,
         "stream": False
-        # "max_tokens": 512  # Gerekirse eklenebilir
     }
 
     response = requests.post(url, headers=headers, data=json.dumps(payload))
-    response_json = response.json()
-    return response_json['choices'][0]['message']['content']
+    return response.json()['choices'][0]['message']['content']
 
-
-# === 6. Hepsini birleştir ===
 def ask_question_from_pdf(pdf_path, question):
-    paragraphs = read_pdf_paragraphs(pdf_path)
-    paragraph_embeddings = embed_paragraphs(paragraphs)
+    paragraphs, paragraph_embeddings = get_cached_embeddings(pdf_path)
     context, sim = find_best_match(paragraphs, paragraph_embeddings, question)
-    answer = ask_local_llm(context, question)
-    return answer
-
-# === 7. Örnek kullanım ===
-if __name__ == "__main__":
-    pdf_path = "fronted.pdf"  # PDF dosya adını buraya yaz
-    question = "Front-End ve Güvenlik İlişkisi nedir?"
-    cevap = ask_question_from_pdf(pdf_path, question)
-    print("Cevap:\n", cevap)
+    return ask_local_llm(context, question)
 
 
 
