@@ -24,8 +24,10 @@ def upload_pdf():
 
     return redirect("/")
 
-@app.route("/ask", methods=["POST"])
+@app.route("/ask", methods=["GET" ,"POST"])
 def ask():
+    if request.method == "GET":
+        return redirect("/")
     question = request.form.get("question")
     selected_pdf = request.form.get("selected_pdf")
 
@@ -40,4 +42,5 @@ def ask():
 
 if __name__ == "__main__":
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    os.makedirs("cache", exist_ok=True)
     app.run(debug=True, port=5000)

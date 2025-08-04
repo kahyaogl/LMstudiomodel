@@ -1,0 +1,5 @@
+services:
+  pdf-llm:
+    build: .
+    ports: 
+      - 5009:5000
