@@ -6,6 +6,8 @@ import requests
 import json
 
 
+
+
 # === 1. PDF'den metin oku ===
 def read_pdf_paragraphs(pdf_path):
     reader = PdfReader(pdf_path)
@@ -68,9 +70,10 @@ def ask_question_from_pdf(pdf_path, question):
 
 # === 7. Örnek kullanım ===
 if __name__ == "__main__":
-    pdf_path = "pdf.pdf"  # PDF dosya adını buraya yaz
+    pdf_path = "fronted.pdf"  # PDF dosya adını buraya yaz
     question = "Front-End ve Güvenlik İlişkisi nedir?"
     cevap = ask_question_from_pdf(pdf_path, question)
     print("Cevap:\n", cevap)
+
 
 

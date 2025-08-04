@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PDF Soru-Cevap Sistemi</title>
+</head>
+<body>
+    <h1>PDF'den Soru-Cevap</h1>
+    <form method="post" enctype="multipart/form-data">
+        <label>PDF Yükle:</label><br>
+        <input type="file" name="pdf"><br><br>
+
+        <label>Soru:</label><br>
+        <input type="text" name="question" style="width: 300px;"><br><br>
+
+        <input type="submit" value="Sor">
+    </form>
+
+    {% if answer %}
+    <h2>Cevap:</h2>
+    <p>{{ answer }}</p>
+    {% endif %}
+</body>
+</html>
