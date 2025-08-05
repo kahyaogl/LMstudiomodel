@@ -22,11 +22,6 @@ def read_pdf_paragraphs(pdf_path):
 def embed_paragraphs(paragraphs):
     return model.encode(paragraphs)
 
-import faiss
-import numpy as np
-import numpy as np
-import faiss
-from sentence_transformers import SentenceTransformer
 
 embedding_model = SentenceTransformer("paraphrase-MiniLM-L6-v2")
 
